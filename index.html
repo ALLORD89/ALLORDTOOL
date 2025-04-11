@@ -165,21 +165,21 @@
   </div>
   <script>
     let countdown = 10;
-    const countdownEl = document.getElementById("countdown");
-    const loadingEl = document.getElementById("loading");
+const countdownEl = document.getElementById("countdown");
+const loadingEl = document.getElementById("loading");
 
-    const interval = setInterval(() => {
-      countdown--;
-      countdownEl.textContent = countdown;
-      if (countdown === 0) {
-        clearInterval(interval);
-        loadingEl.textContent = "Fetching your code...";
-        fetchCode();
-      }
-    }, 1000);
+const interval = setInterval(() => {
+  countdown--;
+  countdownEl.textContent = countdown;
+  if (countdown === 0) {
+    clearInterval(interval);
+    loadingEl.textContent = "Fetching your code...";
+    fetchCode();
+  }
+}, 1000);
 
-    function fetchCode() {
-  fetch("https://keyauth.win/api/seller/?sellerkey=9bd7521e8d86a7c179483d6d25cac33d&type=add&expiry=1&mask=ALLORD-TOOL-******-******-******&level=1&amount=1&format=text", {
+function fetchCode() {
+  fetch("https://keyauth.win/api/seller/?sellerkey=9bd7521e8d86a7c179483d6d25cac33d&type=add&expiry=1&mask=AAAAAA-AAAAAA-AAAAAA&level=1&amount=1&format=text", {
     method: "POST",
     headers: {
       "Content-Type": "application/x-www-form-urlencoded"
@@ -187,18 +187,19 @@
   })
   .then(response => response.text())
   .then(data => {
-    data = data.toUpperCase(); // 🔥 تحويل الكود إلى أحرف كبيرة
-
     const codeEl = document.getElementById("code");
     const copyBtn = document.getElementById("copyBtn");
 
+    // لا تحول الأحرف إلى uppercase – نحتفظ بالكود كما هو من KeyAuth
+    const finalCode = "ALLORD-TOOL-" + data;
+
     loadingEl.style.display = "none";
-    codeEl.textContent = data;
+    codeEl.textContent = finalCode;
     codeEl.style.display = "block";
     copyBtn.style.display = "inline-flex";
 
     copyBtn.onclick = () => {
-      navigator.clipboard.writeText(data).then(() => {
+      navigator.clipboard.writeText(finalCode).then(() => {
         copyBtn.innerHTML = "Copied!";
         copyBtn.classList.add("copied");
         setTimeout(() => {

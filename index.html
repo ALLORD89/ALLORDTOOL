@@ -8,25 +8,25 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <script>
     // قراءة sessionid من الرابط
-    const urlParams = new URLSearchParams(window.location.search);
-    const sessionid = urlParams.get("sessionid");
+<script>
+  const urlParams = new URLSearchParams(window.location.search);
+  const sessionid = urlParams.get("sessionid");
 
-    if (!sessionid) {
-      document.addEventListener("DOMContentLoaded", () => {
-        document.body.innerHTML = "<h2 style='color:white; text-align:center;'>Missing session ID</h2>";
-      });
-      throw new Error("No session ID provided");
-    }
+  if (!sessionid) {
+    document.body.innerHTML = "<h2 style='color:white; text-align:center;'>Access Denied</h2>";
+    throw new Error("No session ID provided");
+  }
 
-    // تحقق من صلاحية الجلسة من خلال API KeyAuth
-    fetch(`https://keyauth.win/api/seller/?sellerkey=YOUR_SELLER_KEY&type=sessioncheck&sessionid=${sessionid}`)
-      .then(res => res.text())
-      .then(response => {
-        if (!response.includes("session valid")) {
-          document.body.innerHTML = "<h2 style='color:white; text-align:center;'>Access Denied</h2>";
-          throw new Error("Invalid session");
-        }
-      });
+  fetch(`https://keyauth.win/api/seller/?sellerkey=YOUR_SELLER_KEY&type=sessioncheck&sessionid=${sessionid}`)
+    .then(res => res.text())
+    .then(response => {
+      if (!response.includes("session valid")) {
+        document.body.innerHTML = "<h2 style='color:white; text-align:center;'>Invalid session</h2>";
+        throw new Error("Unauthorized access");
+      }
+    });
+</script>
+
   </script>
   <style>
     body {

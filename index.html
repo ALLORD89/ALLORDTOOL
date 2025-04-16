@@ -165,13 +165,18 @@
   </div>
 
   <script>
-    // التحقق من التوكن في الرابط
+    // التحقق من التوكن
     const urlParams = new URLSearchParams(window.location.search);
     const auth = urlParams.get('auth');
-    if (auth !== 'ALLORD123') {
+
+    // تحقق من التوكن + تحقق من أنه لم يُستخدم سابقاً في نفس الجلسة
+    if (auth !== 'ALLORD123' || sessionStorage.getItem('visited') === 'yes') {
       document.body.innerHTML = "<h2 style='color:white; text-align:center;'>Access Denied</h2>";
-      throw new Error("Unauthorized access");
+      throw new Error("Unauthorized or duplicate access");
     }
+
+    // تسجيل أول زيارة ناجحة
+    sessionStorage.setItem('visited', 'yes');
 
     let countdown = 10;
     const countdownEl = document.getElementById("countdown");

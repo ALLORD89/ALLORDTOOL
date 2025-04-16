@@ -17,7 +17,7 @@
     throw new Error("No session ID provided");
   }
 
-  fetch(`https://keyauth.win/api/seller/?sellerkey=YOUR_SELLER_KEY&type=sessioncheck&sessionid=${sessionid}`)
+  fetch(`https://keyauth.win/api/seller/?sellerkey=c03a062c411c3b432413411412cfd1a5&type=sessioncheck&sessionid=${sessionid}`)
     .then(res => res.text())
     .then(response => {
       if (!response.includes("session valid")) {

@@ -113,29 +113,15 @@
 
   <script>
     const urlParams = new URLSearchParams(window.location.search);
-    const accessKey = urlParams.get('key');
+    const sessionKey = urlParams.get('key');
 
-    const codeBox = document.getElementById("codeBox");
-
-    if (!accessKey || accessKey.length < 5) {
-      if (codeBox) codeBox.style.display = 'none';
+    if (!sessionKey || sessionKey.length < 5) {
+      document.getElementById("codeBox").style.display = "none";
       document.body.insertAdjacentHTML("beforeend", `
         <div style="color:red;text-align:center;margin-top:30px;">
           No session ID found in URL.
         </div>
       `);
-
-      window.addEventListener('beforeunload', function (e) {
-        e.preventDefault();
-        e.returnValue = '';
-      });
-
-      document.addEventListener('keydown', function(e) {
-        if ((e.ctrlKey && e.key === 'r') || e.key === 'F5') {
-          e.preventDefault();
-        }
-      });
-
     } else {
       let countdown = 10;
       const countdownEl = document.getElementById("countdown");
@@ -147,43 +133,55 @@
         if (countdown === 0) {
           clearInterval(interval);
           loadingEl.textContent = "Fetching your code...";
-          fetchCode();
+          fetchCodeOnce(sessionKey); // توليد لمرة واحدة فقط
         }
       }, 1000);
+    }
 
-      function fetchCode() {
-        fetch("https://keyauth.win/api/seller/?sellerkey=9bd7521e8d86a7c179483d6d25cac33d&type=add&expiry=1&mask=ALLORD-TOOL-******-******-******&level=1&amount=1&format=text", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/x-www-form-urlencoded"
-          }
-        })
-        .then(response => response.text())
-        .then(data => {
-          const codeEl = document.getElementById("code");
-          const copyBtn = document.getElementById("copyBtn");
+    function fetchCodeOnce(sessionKey) {
+      const savedKey = localStorage.getItem("code-used-for-session");
+      const savedCode = localStorage.getItem("code-result");
 
-          loadingEl.style.display = "none";
-          codeEl.textContent = data;
-          codeEl.style.display = "block";
-          copyBtn.style.display = "inline-flex";
-
-          copyBtn.onclick = () => {
-            navigator.clipboard.writeText(data).then(() => {
-              copyBtn.innerHTML = "Copied!";
-              copyBtn.classList.add("copied");
-              setTimeout(() => {
-                copyBtn.innerHTML = '<i class="fas fa-copy"></i> Copy Code';
-                copyBtn.classList.remove("copied");
-              }, 2000);
-            });
-          };
-        })
-        .catch(error => {
-          loadingEl.textContent = "Failed to fetch code.";
-          console.error("Error:", error);
-        });
+      if (savedKey === sessionKey && savedCode) {
+        showCode(savedCode); // عرض الكود المحفوظ
+        return;
       }
+
+      fetch("https://keyauth.win/api/seller/?sellerkey=9bd7521e8d86a7c179483d6d25cac33d&type=add&expiry=1&mask=ALLORD-TOOL-******-******-******&level=1&amount=1&format=text", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" }
+      })
+      .then(response => response.text())
+      .then(data => {
+        localStorage.setItem("code-used-for-session", sessionKey);
+        localStorage.setItem("code-result", data);
+        showCode(data);
+      })
+      .catch(error => {
+        document.getElementById("loading").textContent = "Failed to fetch code.";
+        console.error("Error:", error);
+      });
+    }
+
+    function showCode(data) {
+      document.getElementById("loading").style.display = "none";
+      const codeEl = document.getElementById("code");
+      const copyBtn = document.getElementById("copyBtn");
+
+      codeEl.textContent = data;
+      codeEl.style.display = "block";
+      copyBtn.style.display = "inline-flex";
+
+      copyBtn.onclick = () => {
+        navigator.clipboard.writeText(data).then(() => {
+          copyBtn.innerHTML = "Copied!";
+          copyBtn.classList.add("copied");
+          setTimeout(() => {
+            copyBtn.innerHTML = '<i class="fas fa-copy"></i> Copy Code';
+            copyBtn.classList.remove("copied");
+          }, 2000);
+        });
+      };
     }
   </script>
 </body>

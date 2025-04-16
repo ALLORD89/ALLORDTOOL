@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <title>ALLORD TOOL</title>
-  <link rel="icon" href="https://i.imgur.com/fRqCCR7.png" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="https://i.imgur.com/fRqCCR7.png" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <style>
     * { box-sizing: border-box; }
@@ -27,8 +27,18 @@
       margin-bottom: 30px;
       text-align: center;
     }
-    #logo img { width: 160px; height: 160px; border-radius: 50%; margin-bottom: 10px; }
-    #logo h1 { font-size: 24px; color: #ccc; margin: 0; letter-spacing: 1px; }
+    #logo img {
+      width: 160px;
+      height: 160px;
+      border-radius: 50%;
+      margin-bottom: 10px;
+    }
+    #logo h1 {
+      font-size: 24px;
+      color: #ccc;
+      margin: 0;
+      letter-spacing: 1px;
+    }
     #codeBox {
       background-color: #1b1d22;
       padding: 20px;
@@ -38,7 +48,10 @@
       width: 100%;
       max-width: 500px;
     }
-    #loading { font-size: 16px; color: #aaa; }
+    #loading {
+      font-size: 16px;
+      color: #aaa;
+    }
     #code {
       font-size: 14px;
       background-color: #2a2d34;
@@ -58,37 +71,14 @@
       border-radius: 10px;
       color: #fff;
       cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
+      display: none;
       transition: 0.3s;
     }
-    #copyBtn:hover { background-color: #6366f1; }
-    #copyBtn.copied { background-color: #22c55e; }
-    #links {
-      margin-top: 30px;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 20px;
-      justify-content: center;
-      text-align: center;
+    #copyBtn:hover {
+      background-color: #6366f1;
     }
-    #links a {
-      color: #aaa;
-      text-decoration: none;
-      font-size: 14px;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      transition: 0.3s;
-    }
-    #links a:hover { color: #fff; }
-    i { font-size: 18px; }
-    @media (max-width: 480px) {
-      #logo img { width: 120px; height: 120px; }
-      #logo h1 { font-size: 20px; }
-      #copyBtn { font-size: 14px; padding: 8px 16px; }
-      #code { font-size: 13px; }
+    #copyBtn.copied {
+      background-color: #22c55e;
     }
   </style>
 </head>
@@ -101,27 +91,14 @@
   <div id="codeBox">
     <div id="loading">Please wait <span id="countdown">10</span> seconds...</div>
     <pre id="code"></pre>
-    <button id="copyBtn" style="display:none;">
-      <i class="fas fa-copy"></i> Copy Code
-    </button>
-  </div>
-
-  <div id="links">
-    <a href="https://t.me/allord_tools" target="_blank"><i class="fab fa-telegram"></i> Telegram</a>
-    <a href="https://discord.gg/stRqBdR8dU" target="_blank"><i class="fab fa-discord"></i> Discord</a>
+    <button id="copyBtn"><i class="fas fa-copy"></i> Copy Code</button>
   </div>
 
   <script>
-    const urlParams = new URLSearchParams(window.location.search);
-    const sessionKey = urlParams.get('key');
+    const sessionKey = new URLSearchParams(window.location.search).get("key");
 
     if (!sessionKey || sessionKey.length < 5) {
-      document.getElementById("codeBox").style.display = "none";
-      document.body.insertAdjacentHTML("beforeend", `
-        <div style="color:red;text-align:center;margin-top:30px;">
-          No session ID found in URL.
-        </div>
-      `);
+      document.getElementById("codeBox").innerHTML = "<div style='color:red;'>Missing or invalid session key.</div>";
     } else {
       let countdown = 10;
       const countdownEl = document.getElementById("countdown");
@@ -132,48 +109,39 @@
         countdownEl.textContent = countdown;
         if (countdown === 0) {
           clearInterval(interval);
-          loadingEl.textContent = "Fetching your code...";
-          fetchCodeOnce(sessionKey); // توليد لمرة واحدة فقط
+          loadingEl.textContent = "Verifying your session...";
+          fetchCode();
         }
       }, 1000);
     }
 
-    function fetchCodeOnce(sessionKey) {
-      const savedKey = localStorage.getItem("code-used-for-session");
-      const savedCode = localStorage.getItem("code-result");
-
-      if (savedKey === sessionKey && savedCode) {
-        showCode(savedCode); // عرض الكود المحفوظ
-        return;
-      }
-
-      fetch("https://keyauth.win/api/seller/?sellerkey=9bd7521e8d86a7c179483d6d25cac33d&type=add&expiry=1&mask=ALLORD-TOOL-******-******-******&level=1&amount=1&format=text", {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" }
-      })
-      .then(response => response.text())
-      .then(data => {
-        localStorage.setItem("code-used-for-session", sessionKey);
-        localStorage.setItem("code-result", data);
-        showCode(data);
-      })
-      .catch(error => {
-        document.getElementById("loading").textContent = "Failed to fetch code.";
-        console.error("Error:", error);
-      });
+    function fetchCode() {
+      fetch("https://yourdomain.com/keyauth.php?sessionid=" + sessionKey)
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            showCode(data.code);
+          } else {
+            document.getElementById("codeBox").innerHTML = "<div style='color:orange;'>" + data.message + "</div>";
+          }
+        })
+        .catch(err => {
+          document.getElementById("codeBox").innerHTML = "<div style='color:red;'>Connection error.</div>";
+          console.error(err);
+        });
     }
 
-    function showCode(data) {
-      document.getElementById("loading").style.display = "none";
+    function showCode(code) {
       const codeEl = document.getElementById("code");
       const copyBtn = document.getElementById("copyBtn");
 
-      codeEl.textContent = data;
+      document.getElementById("loading").style.display = "none";
+      codeEl.textContent = code;
       codeEl.style.display = "block";
-      copyBtn.style.display = "inline-flex";
+      copyBtn.style.display = "inline-block";
 
       copyBtn.onclick = () => {
-        navigator.clipboard.writeText(data).then(() => {
+        navigator.clipboard.writeText(code).then(() => {
           copyBtn.innerHTML = "Copied!";
           copyBtn.classList.add("copied");
           setTimeout(() => {

@@ -113,11 +113,11 @@
 
   <script>
   // التحقق من وجود التوكن في الرابط
-  const urlParams = new URLSearchParams(window.location.search);
-  const auth = urlParams.get('auth');
-  if (auth !== '123456') {
-    document.body.innerHTML = "<h2 style='color:white; text-align:center;'>Access Denied</h2>";
-    throw new Error("Unauthorized access");
+const urlParams = new URLSearchParams(window.location.search);
+const auth = urlParams.get('auth');
+if (auth !== 'ALLORD123') {
+  document.body.innerHTML = "<h2 style='color:white; text-align:center;'>Access Denied</h2>";
+  throw new Error("Unauthorized access");
   }
 
   let countdown = 10;

@@ -112,14 +112,13 @@
   </div>
 
   <script>
-    const path = window.location.pathname; // مثل /ALLORDTOOLabcd1234
-    const token = path.replace("/ALLORDTOOL", "");
+    const urlParams = new URLSearchParams(window.location.search);
+    const accessKey = urlParams.get('key');
 
     const codeBox = document.getElementById("codeBox");
 
-    if (!token || token.length < 5) {
+    if (!accessKey || accessKey.length < 5) {
       if (codeBox) codeBox.style.display = 'none';
-
       document.body.insertAdjacentHTML("beforeend", `
         <div style="color:red;text-align:center;margin-top:30px;">
           No session ID found in URL.

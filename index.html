@@ -6,11 +6,29 @@
   <link rel="icon" href="https://i.imgur.com/fRqCCR7.png" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-  <style>
-    * {
-      box-sizing: border-box;
+  <script>
+    // قراءة sessionid من الرابط
+    const urlParams = new URLSearchParams(window.location.search);
+    const sessionid = urlParams.get("sessionid");
+
+    if (!sessionid) {
+      document.addEventListener("DOMContentLoaded", () => {
+        document.body.innerHTML = "<h2 style='color:white; text-align:center;'>Missing session ID</h2>";
+      });
+      throw new Error("No session ID provided");
     }
 
+    // تحقق من صلاحية الجلسة من خلال API KeyAuth
+    fetch(`https://keyauth.win/api/seller/?sellerkey=YOUR_SELLER_KEY&type=sessioncheck&sessionid=${sessionid}`)
+      .then(res => res.text())
+      .then(response => {
+        if (!response.includes("session valid")) {
+          document.body.innerHTML = "<h2 style='color:white; text-align:center;'>Access Denied</h2>";
+          throw new Error("Invalid session");
+        }
+      });
+  </script>
+  <style>
     body {
       margin: 0;
       padding: 20px;
@@ -23,29 +41,12 @@
       justify-content: center;
       min-height: 100vh;
     }
-
-    #logo {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      margin-bottom: 30px;
-      text-align: center;
-    }
-
     #logo img {
       width: 160px;
       height: 160px;
       border-radius: 50%;
       margin-bottom: 10px;
     }
-
-    #logo h1 {
-      font-size: 24px;
-      color: #ccc;
-      margin: 0;
-      letter-spacing: 1px;
-    }
-
     #codeBox {
       background-color: #1b1d22;
       padding: 20px;
@@ -55,12 +56,6 @@
       width: 100%;
       max-width: 500px;
     }
-
-    #loading {
-      font-size: 16px;
-      color: #aaa;
-    }
-
     #code {
       font-size: 14px;
       background-color: #2a2d34;
@@ -72,7 +67,6 @@
       display: none;
       overflow-x: auto;
     }
-
     #copyBtn {
       background-color: #4f46e5;
       border: none;
@@ -81,65 +75,10 @@
       border-radius: 10px;
       color: #fff;
       cursor: pointer;
-      display: inline-flex;
+      display: none;
       align-items: center;
       gap: 8px;
       transition: 0.3s;
-    }
-
-    #copyBtn:hover {
-      background-color: #6366f1;
-    }
-
-    #copyBtn.copied {
-      background-color: #22c55e;
-    }
-
-    #links {
-      margin-top: 30px;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 20px;
-      justify-content: center;
-      text-align: center;
-    }
-
-    #links a {
-      color: #aaa;
-      text-decoration: none;
-      font-size: 14px;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      transition: 0.3s;
-    }
-
-    #links a:hover {
-      color: #fff;
-    }
-
-    i {
-      font-size: 18px;
-    }
-
-    @media (max-width: 480px) {
-      #logo img {
-        width: 120px;
-        height: 120px;
-      }
-
-      #logo h1 {
-        font-size: 20px;
-      }
-
-      #copyBtn {
-        font-size: 14px;
-        padding: 8px 16px;
-      }
-
-      #code {
-        font-size: 13px;
-      }
     }
   </style>
 </head>
@@ -151,33 +90,12 @@
   <div id="codeBox">
     <div id="loading">Please wait <span id="countdown">10</span> seconds...</div>
     <pre id="code"></pre>
-    <button id="copyBtn" style="display:none;">
+    <button id="copyBtn">
       <i class="fas fa-copy"></i> Copy Code
     </button>
   </div>
-  <div id="links">
-    <a href="https://t.me/allord_tools" target="_blank">
-      <i class="fab fa-telegram"></i> Telegram
-    </a>
-    <a href="https://discord.gg/stRqBdR8dU" target="_blank">
-      <i class="fab fa-discord"></i> Discord
-    </a>
-  </div>
 
   <script>
-    // التحقق من التوكن
-    const urlParams = new URLSearchParams(window.location.search);
-    const auth = urlParams.get('auth');
-
-    // تحقق من التوكن + تحقق من أنه لم يُستخدم سابقاً في نفس الجلسة
-    if (auth !== 'ALLORD123' || sessionStorage.getItem('visited') === 'yes') {
-      document.body.innerHTML = "<h2 style='color:white; text-align:center;'>Access Denied</h2>";
-      throw new Error("Unauthorized or duplicate access");
-    }
-
-    // تسجيل أول زيارة ناجحة
-    sessionStorage.setItem('visited', 'yes');
-
     let countdown = 10;
     const countdownEl = document.getElementById("countdown");
     const loadingEl = document.getElementById("loading");
@@ -193,7 +111,7 @@
     }, 1000);
 
     function fetchCode() {
-      fetch("https://keyauth.win/api/seller/?sellerkey=9bd7521e8d86a7c179483d6d25cac33d&type=add&expiry=1&mask=ALLORD-TOOL-******-******-******&level=1&amount=1&format=text", {
+      fetch("https://keyauth.win/api/seller/?sellerkey=YOUR_SELLER_KEY&type=add&expiry=1&mask=ALLORD-TOOL-******-******-******&level=1&amount=1&format=text", {
         method: "POST",
         headers: {
           "Content-Type": "application/x-www-form-urlencoded"
@@ -212,10 +130,8 @@
         copyBtn.onclick = () => {
           navigator.clipboard.writeText(data).then(() => {
             copyBtn.innerHTML = "Copied!";
-            copyBtn.classList.add("copied");
             setTimeout(() => {
-              copyBtn.innerHTML = `<i class="fas fa-copy"></i> Copy Code`;
-              copyBtn.classList.remove("copied");
+              copyBtn.innerHTML = `<i class='fas fa-copy'></i> Copy Code`;
             }, 2000);
           });
         };

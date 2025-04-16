@@ -4,101 +4,70 @@
   <meta charset="UTF-8">
   <title>ALLORD TOOL</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="icon" href="https://i.imgur.com/fRqCCR7.png" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <style>
-    * { box-sizing: border-box; }
     body {
-      margin: 0;
-      padding: 20px;
       background-color: #0e0f11;
       color: #fff;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      font-family: sans-serif;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
+      padding: 20px;
       min-height: 100vh;
     }
-    #logo {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      margin-bottom: 30px;
-      text-align: center;
-    }
-    #logo img {
-      width: 160px;
-      height: 160px;
-      border-radius: 50%;
-      margin-bottom: 10px;
-    }
-    #logo h1 {
-      font-size: 24px;
-      color: #ccc;
-      margin: 0;
-      letter-spacing: 1px;
-    }
+
     #codeBox {
-      background-color: #1b1d22;
+      background: #1b1d22;
       padding: 20px;
       border-radius: 16px;
-      box-shadow: 0 0 20px rgba(0,0,0,0.5);
-      text-align: center;
-      width: 100%;
       max-width: 500px;
+      width: 100%;
+      text-align: center;
     }
+
     #loading {
       font-size: 16px;
       color: #aaa;
     }
+
     #code {
-      font-size: 14px;
-      background-color: #2a2d34;
+      background: #2a2d34;
       padding: 12px 16px;
-      margin: 20px 0;
       border-radius: 10px;
-      word-break: break-word;
-      direction: ltr;
+      margin: 20px 0;
       display: none;
-      overflow-x: auto;
+      white-space: pre-wrap;
     }
+
     #copyBtn {
       background-color: #4f46e5;
       border: none;
+      color: white;
       padding: 10px 20px;
-      font-size: 15px;
       border-radius: 10px;
-      color: #fff;
       cursor: pointer;
       display: none;
-      transition: 0.3s;
     }
-    #copyBtn:hover {
-      background-color: #6366f1;
-    }
+
     #copyBtn.copied {
       background-color: #22c55e;
     }
   </style>
 </head>
 <body>
-  <div id="logo">
-    <img src="https://media.giphy.com/media/DGrRLkwL5RxkknvjQ7/giphy.gif" alt="Logo">
-    <h1>ALLORD TOOL</h1>
-  </div>
-
+  <h1>ALLORD TOOL</h1>
   <div id="codeBox">
     <div id="loading">Please wait <span id="countdown">10</span> seconds...</div>
     <pre id="code"></pre>
-    <button id="copyBtn"><i class="fas fa-copy"></i> Copy Code</button>
+    <button id="copyBtn">Copy Code</button>
   </div>
 
   <script>
     const sessionKey = new URLSearchParams(window.location.search).get("key");
 
-    if (!sessionKey || sessionKey.length < 5) {
-      document.getElementById("codeBox").innerHTML = "<div style='color:red;'>Missing or invalid session key.</div>";
+    if (!sessionKey) {
+      document.getElementById("codeBox").innerHTML = "<div style='color:red;'>Missing session key in URL.</div>";
     } else {
       let countdown = 10;
       const countdownEl = document.getElementById("countdown");
@@ -109,7 +78,7 @@
         countdownEl.textContent = countdown;
         if (countdown === 0) {
           clearInterval(interval);
-          loadingEl.textContent = "Verifying your session...";
+          loadingEl.textContent = "Verifying session...";
           fetchCode();
         }
       }, 1000);
@@ -117,40 +86,35 @@
 
     function fetchCode() {
       fetch("https://allordtool.ebn1mokaym.repl.co/keyauth.php?sessionid=" + sessionKey)
-        .then(res => res.json())
+        .then(res => res.text())
         .then(data => {
-          if (data.success) {
-            showCode(data.code);
+          document.getElementById("loading").style.display = "none";
+          if (data.toLowerCase().includes("code")) {
+            document.getElementById("code").textContent = data;
+            document.getElementById("code").style.display = "block";
+            document.getElementById("copyBtn").style.display = "inline-block";
           } else {
-            document.getElementById("codeBox").innerHTML = "<div style='color:orange;'>" + data.message + "</div>";
+            document.getElementById("codeBox").innerHTML = "<div style='color:orange;'>" + data + "</div>";
           }
         })
-        .catch(err => {
-          document.getElementById("codeBox").innerHTML = "<div style='color:red;'>Connection error.</div>";
-          console.error(err);
+        .catch(error => {
+          document.getElementById("codeBox").innerHTML = "<div style='color:red;'>Error fetching code.</div>";
+          console.error(error);
         });
     }
 
-    function showCode(code) {
-      const codeEl = document.getElementById("code");
-      const copyBtn = document.getElementById("copyBtn");
-
-      document.getElementById("loading").style.display = "none";
-      codeEl.textContent = code;
-      codeEl.style.display = "block";
-      copyBtn.style.display = "inline-block";
-
-      copyBtn.onclick = () => {
-        navigator.clipboard.writeText(code).then(() => {
-          copyBtn.innerHTML = "Copied!";
-          copyBtn.classList.add("copied");
-          setTimeout(() => {
-            copyBtn.innerHTML = '<i class="fas fa-copy"></i> Copy Code';
-            copyBtn.classList.remove("copied");
-          }, 2000);
-        });
-      };
-    }
+    document.getElementById("copyBtn").addEventListener("click", () => {
+      const codeText = document.getElementById("code").textContent;
+      navigator.clipboard.writeText(codeText).then(() => {
+        const btn = document.getElementById("copyBtn");
+        btn.textContent = "Copied!";
+        btn.classList.add("copied");
+        setTimeout(() => {
+          btn.textContent = "Copy Code";
+          btn.classList.remove("copied");
+        }, 2000);
+      });
+    });
   </script>
 </body>
 </html>

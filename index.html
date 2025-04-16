@@ -112,74 +112,62 @@
   </div>
 
   <script>
-    const urlParams = new URLSearchParams(window.location.search);
-    const accessKey = urlParams.get('key');
-    const validKey = 'mySecretKey123';
+  // التحقق من وجود التوكن في الرابط
+  const urlParams = new URLSearchParams(window.location.search);
+  const auth = urlParams.get('auth');
+  if (auth !== '123456') {
+    document.body.innerHTML = "<h2 style='color:white; text-align:center;'>Access Denied</h2>";
+    throw new Error("Unauthorized access");
+  }
 
-    const codeBox = document.getElementById("codeBox");
+  let countdown = 10;
+  const countdownEl = document.getElementById("countdown");
+  const loadingEl = document.getElementById("loading");
 
-    if (accessKey !== validKey) {
-      if (codeBox) codeBox.style.display = 'none';
-
-      window.addEventListener('beforeunload', function (e) {
-        e.preventDefault();
-        e.returnValue = '';
-      });
-
-      document.addEventListener('keydown', function(e) {
-        if ((e.ctrlKey && e.key === 'r') || (e.key === 'F5')) {
-          e.preventDefault();
-        }
-      });
-    } else {
-      let countdown = 10;
-      const countdownEl = document.getElementById("countdown");
-      const loadingEl = document.getElementById("loading");
-
-      const interval = setInterval(() => {
-        countdown--;
-        countdownEl.textContent = countdown;
-        if (countdown === 0) {
-          clearInterval(interval);
-          loadingEl.textContent = "Fetching your code...";
-          fetchCode();
-        }
-      }, 1000);
-
-      function fetchCode() {
-        fetch("https://keyauth.win/api/seller/?sellerkey=9bd7521e8d86a7c179483d6d25cac33d&type=add&expiry=1&mask=ALLORD-TOOL-******-******-******&level=1&amount=1&format=text", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/x-www-form-urlencoded"
-          }
-        })
-        .then(response => response.text())
-        .then(data => {
-          const codeEl = document.getElementById("code");
-          const copyBtn = document.getElementById("copyBtn");
-
-          loadingEl.style.display = "none";
-          codeEl.textContent = data;
-          codeEl.style.display = "block";
-          copyBtn.style.display = "inline-flex";
-
-          copyBtn.onclick = () => {
-            navigator.clipboard.writeText(data).then(() => {
-              copyBtn.innerHTML = "Copied!";
-              copyBtn.classList.add("copied");
-              setTimeout(() => {
-                copyBtn.innerHTML = '<i class="fas fa-copy"></i> Copy Code';
-                copyBtn.classList.remove("copied");
-              }, 2000);
-            });
-          };
-        })
-        .catch(error => {
-          loadingEl.textContent = "Failed to fetch code.";
-          console.error("Error:", error);
-        });
-      }
+  const interval = setInterval(() => {
+    countdown--;
+    countdownEl.textContent = countdown;
+    if (countdown === 0) {
+      clearInterval(interval);
+      loadingEl.textContent = "Fetching your code...";
+      fetchCode();
     }
-  </script>
+  }, 1000);
+
+  function fetchCode() {
+    fetch("https://keyauth.win/api/seller/?sellerkey=9bd7521e8d86a7c179483d6d25cac33d&type=add&expiry=1&mask=ALLORD-TOOL-******-******-******&level=1&amount=1&format=text", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded"
+      }
+    })
+    .then(response => response.text())
+    .then(data => {
+      const codeEl = document.getElementById("code");
+      const copyBtn = document.getElementById("copyBtn");
+
+      loadingEl.style.display = "none";
+      codeEl.textContent = data;
+      codeEl.style.display = "block";
+      copyBtn.style.display = "inline-flex";
+
+      copyBtn.onclick = () => {
+        navigator.clipboard.writeText(data).then(() => {
+          copyBtn.innerHTML = "Copied!";
+          copyBtn.classList.add("copied");
+          setTimeout(() => {
+            copyBtn.innerHTML = `<i class="fas fa-copy"></i> Copy Code`;
+            copyBtn.classList.remove("copied");
+          }, 2000);
+        });
+      };
+    })
+    .catch(error => {
+      loadingEl.textContent = "Failed to fetch code.";
+      console.error("Error:", error);
+    });
+  }
+</script>
+
 </body>
 </html>
